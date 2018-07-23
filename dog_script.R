@@ -28,25 +28,46 @@ labs <- locs[grepl("LAB",locs$Breed),] #2
 retrs <- locs[grepl("RETRIEV",locs$Breed),] #4
 shepherds <- locs[grepl("SHEP",locs$Breed),] #5
 poodles <- locs[grepl("OODLE",locs$Breed),] 
-terriers <- locs[grepl("TERR",locs$Breed),] #1
 pitbulls <- locs[grepl("PIT BULL",locs$Breed),]
 mixed <- locs[grepl("MIXED",locs$Breed,fixed=TRUE),] #3
+terriers <- locs[grepl("TERR",locs$Breed)&!(grepl("PIT",locs$Breed)),] #1
 
 
 others <- locs[!(locs$Breed %in% c(labs$Breed,shepherds$Breed,poodles$Breed,terriers$Breed,pitbulls$Breed,retrs$Breed,mixed$Breed)),]
 otherssort <- as.data.frame(sort(table(others$Breed), decreasing=T))
+others <- others[others$city!="Pittsburgh",]
 
 #breeds for pittsburgh only
-pittlab <- labs[labs$city=="Pittsburgh",] #2
-pittretrs <- retrs[retrs$city=="Pittsburgh",] #4
+pittlab <- labs[labs$city=="Pittsburgh",] #1
+pittretrs <- retrs[retrs$city=="Pittsburgh",] #3
 pittshep <- shepherds[shepherds$city=="Pittsburgh",] #5
 pittpoodles <- poodles[poodles$city=="Pittsburgh",]
-pittterr <- terriers[terriers$city=="Pittsburgh",] #1
+pittterr <- terriers[terriers$city=="Pittsburgh",] #4
 pittbulls<- pitbulls[pitbulls$city=="Pittsburgh",]
-pittmixed <- mixed[mixed$city=="Pittsburgh",] #3
+pittmixed <- mixed[mixed$city=="Pittsburgh",] #2
 
 pittothers <- others[others$city=="Pittsburgh",]
 pittotherssort <- as.data.frame(sort(table(pittothers$Breed), decreasing=T))
+
+#put together top 5 from Pitt & county for graph
+top5 <- data.frame(row.names = NULL, c("Labrador","Mixed breed","Golden retriever","Terrier (not pit bull)","Shepherd"),
+                      c(nrow(labs[labs$city=="Pittsburgh",]),nrow(mixed[mixed$city=="Pittsburgh",]),nrow(retrs[retrs$city=="Pittsburgh",]),
+                        nrow(terriers[terriers$city=="Pittsburgh",]),nrow(shepherds[shepherds$city=="Pittsburgh",])))
+colnames(top5) <- c("Breed","Count")
+top5$Location <- "Pittsburgh"
+
+alleghenytop5 <- data.frame(row.names=NULL, c("Labrador","Mixed breed","Golden retriever","Terrier (not pit bull)","Shepherd"),
+                            c(nrow(labs[labs$city!="Pittsburgh",]),nrow(mixed[mixed$city!="Pittsburgh",]),nrow(retrs[retrs$city!="Pittsburgh",]),
+                              nrow(terriers[terriers$city!="Pittsburgh",]),nrow(shepherds[shepherds$city!="Pittsburgh",])))
+colnames(alleghenytop5) <- c("Breed","Count")
+alleghenytop5$Location <- "Rest of Allegheny Co."
+
+bothtop5 <- rbind(top5,alleghenytop5)
+bothtop5$Breed <- factor(bothtop5$Breed,levels=bothtop5$Breed)
+
+ggplot(bothtop5,aes(fill=Location,color=Location,x=Breed,y=Count)) + geom_bar(position="dodge",stat="identity")+ theme_minimal() + 
+  theme(axis.text.x = element_text(angle=90)) + ggtitle("Dog breeds of Allegheny County (2017)") +
+  scale_fill_manual(values=c("gold1","slateblue3")) + scale_color_manual(values=c("black","slateblue4"))
 
 
 #are there common names?
@@ -67,6 +88,8 @@ sum(grepl("Male",locs$LicenseType),na.rm=TRUE)/nrow(locs)
 
 sum(grepl("Female",pitt$LicenseType),na.rm=TRUE)/nrow(pitt)
 sum(grepl("Male",pitt$LicenseType),na.rm=TRUE)/nrow(pitt) #sexes are roughly even in county and Pittsburgh
+
+
 
 
 #import combined dataset
