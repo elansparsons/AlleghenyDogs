@@ -65,8 +65,7 @@ alleghenytop5$Location <- "Rest of Allegheny Co."
 bothtop5 <- rbind(top5,alleghenytop5)
 bothtop5$Breed <- factor(bothtop5$Breed,levels=bothtop5$Breed)
 
-ggplot(bothtop5,aes(fill=Location,color=Location,x=Breed,y=Count)) + geom_bar(position="dodge",stat="identity")+ theme_minimal() + 
-  theme(axis.text.x = element_text(angle=90)) + ggtitle("Dog breeds of Allegheny County (2017)") +
+ggplot(bothtop5,aes(fill=Location,color=Location,x=Breed,y=Count)) + geom_bar(position="dodge",stat="identity")+ theme_minimal() + ggtitle("Dog breeds of Allegheny County (2017)") +
   scale_fill_manual(values=c("gold1","slateblue3")) + scale_color_manual(values=c("black","slateblue4"))
 
 
