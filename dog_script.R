@@ -3,8 +3,11 @@ library(zipcode)
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(gridExtra)
+library(grid)
+library(scales)
 
-dogs_2017 <- read_csv("./Allegheny_dogs_2017.csv")
+dogs_2017 <- read_csv("../AlleghenyData/Allegheny_dogs_2017.csv")
 
 #load US zipcodes
 data(zipcode)
@@ -91,4 +94,31 @@ sum(grepl("Male",pitt$LicenseType),na.rm=TRUE)/nrow(pitt) #sexes are roughly eve
 
 
 
-#import combined dataset
+#import combined dataset to find if dog/human ratio is increasing
+alldogs <- read_csv("../AlleghenyData/alldogs.csv")
+pittpop <- read_csv("../AlleghenyData/pittpop.csv")
+
+locs <- merge(alldogs,zipcode,by.x="OwnerZip",by.y="zip")
+locs <- unique(locs)
+
+#Pittsburgh only
+allpitt <- locs[locs$city=="Pittsburgh",]
+
+byyear <- allpitt %>% count(ExpYear)
+
+byyear <- merge(byyear,pittpop,by.x="ExpYear",by.y="year")
+byyear$prop <- byyear$n/byyear$population
+
+plot1 <- ggplot(byyear,aes(x=ExpYear,y=n)) + theme(plot.margin = unit(c(1,5,-30,6),units="points")) + 
+  geom_line() + scale_x_continuous(limits=c(2006,2018),breaks=pretty_breaks()) +
+  labs(y="Number of dog licenses")
+plot2 <- ggplot(byyear,aes(x=ExpYear,y=population)) + theme(plot.margin = unit(c(0,5,1,1),units="points")) + geom_line() + scale_x_continuous(limits=c(2006,2018),breaks=pretty_breaks()) +
+  labs(x="Year",y="Population")
+
+plot3 <- ggplot(byyear,aes(x=ExpYear,y=prop)) + geom_line() + scale_x_continuous(limits=c(2006,2018),breaks=pretty_breaks()) +
+  labs(y="Proportion dogs to humans",x="Year")
+
+lay <- rbind(c(1,1,3,3),c(2,2,3,3))
+
+grid.arrange(plot1,plot2,plot3,layout_matrix=lay,top="Dogs and humans in Pittsburgh")
+
