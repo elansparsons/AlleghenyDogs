@@ -6,6 +6,7 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 library(scales)
+library(MASS)
 
 dogs_2017 <- read_csv("../AlleghenyData/Allegheny_dogs_2017.csv")
 
@@ -111,14 +112,50 @@ byyear$prop <- byyear$n/byyear$population
 
 plot1 <- ggplot(byyear,aes(x=ExpYear,y=n)) + theme(plot.margin = unit(c(1,5,-30,6),units="points")) + 
   geom_line() + scale_x_continuous(limits=c(2006,2018),breaks=pretty_breaks()) +
-  labs(y="Number of dog licenses")
+  labs(y="Number of dog licenses") + theme_minimal() + theme(axis.title.x = element_blank(),axis.text.x = element_blank()) 
+
 plot2 <- ggplot(byyear,aes(x=ExpYear,y=population)) + theme(plot.margin = unit(c(0,5,1,1),units="points")) + geom_line() + scale_x_continuous(limits=c(2006,2018),breaks=pretty_breaks()) +
-  labs(x="Year",y="Population")
+  labs(x="Year",y="Population") + theme_minimal()
 
 plot3 <- ggplot(byyear,aes(x=ExpYear,y=prop)) + geom_line() + scale_x_continuous(limits=c(2006,2018),breaks=pretty_breaks()) +
-  labs(y="Proportion dogs to humans",x="Year")
+  labs(y="Proportion dogs to humans",x="Year") + theme_minimal()
 
 lay <- rbind(c(1,1,3,3),c(2,2,3,3))
 
 grid.arrange(plot1,plot2,plot3,layout_matrix=lay,top="Dogs and humans in Pittsburgh")
 
+#Did Twilight influence dog names? Compare 2007 and 2017
+ab0717 <- allpitt[allpitt$ExpYear %in% c(2007,2017),]
+twilight <- c("ISABELLA","BELLA","JACOB","EDWARD")
+
+twidogs <- ab0717[ab0717$DogName %in% twilight,]
+nottwi <- ab0717[!(ab0717$DogName %in% twilight),]
+
+twigroups <- twidogs %>% group_by(ExpYear) %>% count()
+colnames(twigroups) <- c("ExpYear","Yes")
+
+nottwigroups <- nottwi %>% group_by(ExpYear) %>% count()
+colnames(nottwigroups) <- c("ExpYear","No")
+
+allgroups <- merge(twigroups,nottwigroups,on="ExpYear")
+allgroups
+
+chisq.test(as.matrix(allgroups)) #Yup.
+
+#what about 2007 and 2009?
+ab0709 <- allpitt[allpitt$ExpYear %in% c(2007,2009),]
+twilight <- c("ISABELLA","BELLA","JACOB","EDWARD")
+
+twidogs <- ab0709[ab0709$DogName %in% twilight,]
+nottwi <- ab0709[!(ab0709$DogName %in% twilight),]
+
+twigroups <- twidogs %>% group_by(ExpYear) %>% count()
+colnames(twigroups) <- c("ExpYear","Yes")
+
+nottwigroups <- nottwi %>% group_by(ExpYear) %>% count()
+colnames(nottwigroups) <- c("ExpYear","No")
+
+allgroups <- merge(twigroups,nottwigroups,on="ExpYear")
+allgroups
+
+chisq.test(as.matrix(allgroups)) #Yup.
